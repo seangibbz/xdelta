@@ -1,3 +1,7 @@
+# XDelta Wii/GC
+
+This is an attempt to create a homebrew app for the Nintendo Wii / GameCube that can patch dumped games, without the need for a computer.
+
 # Xdelta
 
 Xdelta version 3 is a C library and command-line tool for delta
@@ -14,11 +18,3 @@ namely:
 - __release3_1_apl__ Merges release3_0_apl with 3.1.0 sources
 
 The original GPL licensed Xdelta lives at http://github.com/jmacd/xdelta-gpl.
-
-# Documentation
-
-See the [command-line usage](https://github.com/jmacd/xdelta/blob/wiki/CommandLineSyntax.md).  See [wiki directory](https://github.com/jmacd/xdelta/tree/wiki).
-
-
-
-

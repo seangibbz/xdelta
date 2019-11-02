@@ -3,9 +3,7 @@
 #include <gccore.h>
 #include <wiiuse/wpad.h>
 #include <fat.h>
-
-static void *xfb = NULL;
-static GXRModeObj *rmode = NULL;
+#include "main.h"
 
 //---------------------------------------------------------------------------------
 int main(int argc, char **argv) {
@@ -44,21 +42,23 @@ int main(int argc, char **argv) {
 	if(rmode->viTVMode&VI_NON_INTERLACE) VIDEO_WaitVSync();
 
 
-	// The console understands VT terminal escape codes
-	// This positions the cursor on row 0, column 0
-	// we can use variables for this with format codes too
-	// e.g. printf ("\x1b[%d;%dH", row, column );
+	// Position cursor on row 0, column 0
 	printf("\x1b[0;0H");
 
-	printf("Counting up to 5...\n");
-
-	int testnum = 0;
-	
-	while (testnum <= 5) {
-		printf("%i\n",testnum);
-		testnum++;
+	// Check if FAT can be initialized
+	if (!fatInitDefault()) {
+		printf("Unable to initialise FAT subsystem, exiting.\n");
+		exit(0);
+	} else {
+		printf("FAT Device Detected!\n");
 	}
 
+	// MAIN FUNCTION CODE GOES HERE //
+
+	return waitForHomeToExit();
+}
+
+int waitForHomeToExit() {
 	//Wait for user to press HOME button to exit
 	while(1) {
 

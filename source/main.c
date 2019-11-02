@@ -1,9 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <gccore.h>
 #include <wiiuse/wpad.h>
 #include <fat.h>
+
 #include "main.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <dirent.h>
 
 //---------------------------------------------------------------------------------
 int main(int argc, char **argv) {
@@ -50,10 +54,9 @@ int main(int argc, char **argv) {
 		printf("Unable to initialise FAT subsystem, exiting.\n");
 		exit(0);
 	} else {
-		printf("FAT Device Detected!\n");
+		printf("SD Card Detected!\nListing SD Card Directory...\n");
+		dirlist("/");
 	}
-
-	// MAIN FUNCTION CODE GOES HERE //
 
 	return waitForHomeToExit();
 }
@@ -70,11 +73,53 @@ int waitForHomeToExit() {
 		u32 pressed = WPAD_ButtonsDown(0);
 
 		// We return to the launcher application via exit
-		if ( pressed & WPAD_BUTTON_HOME ) exit(0);
+		if ( pressed & WPAD_BUTTON_HOME ) {
+			printf("\nExiting...\n");
+			exit(0);
+		}
 
 		// Wait for the next frame
 		VIDEO_WaitVSync();
 	}
-
+	
 	return 0;
+}
+
+void dirlist(char* path) {
+	DIR* pdir = opendir(path);
+
+	if (pdir != NULL)
+	{
+		while(true) 
+		{
+			struct dirent* pent = readdir(pdir);
+			if(pent == NULL) break;
+			
+			if(strcmp(".", pent->d_name) != 0 && strcmp("..", pent->d_name) != 0)
+			{
+				char dnbuf[260];
+				sprintf(dnbuf, "%s/%s", path, pent->d_name);
+				
+				struct stat statbuf;
+				stat(dnbuf, &statbuf);
+				
+				if(S_ISDIR(statbuf.st_mode))
+				{
+					printf("%s <DIR>\n", dnbuf);
+					dirlist(dnbuf);
+				}
+				else
+				{
+					printf("%s (%d)\n", dnbuf, (int)statbuf.st_size);
+				}
+				
+			}
+		}
+		
+		closedir(pdir);
+	}
+	else
+	{
+		printf("opendir() failure.\n");
+	}
 }

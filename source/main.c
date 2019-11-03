@@ -54,12 +54,13 @@ int main(int argc, char **argv) {
 
 	
 	// Select device (SD or USB)
-	int deviceSelect = 0;
 	printf("Select the device with your game and patch files\n\n");
 	printf("\tPress [1] for Front SD\n");
 	printf("\tPress [2] for USB\n");
 	printf("\tPress [HOME] to exit\n\n");
 	
+	int deviceSelect = 0;
+
 	while (deviceSelect == 0) {
 		WPAD_ScanPads();
 		u32 pressed = WPAD_ButtonsDown(0);
@@ -76,27 +77,19 @@ int main(int argc, char **argv) {
 	}
 	
 	char fatDeviceStr[strlen("usb:/") + 1];
-	char gamefileStr[strlen("usb:/game.iso") + 1];
-	char patchfileStr[strlen("usb:/patch.xdelta") + 1];
-	char targetfileStr[strlen("usb:/patched.iso") + 1];
+	char gamefileStr[strlen(fatDeviceStr) + strlen("game.iso") + 1];
+	char patchfileStr[strlen(fatDeviceStr) + strlen("patch.xdelta") + 1];
+	char targetfileStr[strlen(fatDeviceStr) + strlen("patched.iso") + 1];
 	
 	FILE *gamefile = NULL;
 	FILE *patchfile = NULL;
 	FILE *targetfile = NULL;
 	
-	
+	// Set and Initialize FAT device
 	switch (deviceSelect) {
 		// SD
 		case 1: printf("SD Card selected.\n\n");
 			strcpy(fatDeviceStr,"sd:/");
-			snprintf(gamefileStr,sizeof(gamefileStr),"%sgame.iso",fatDeviceStr);
-			snprintf(patchfileStr,sizeof(patchfileStr),"%spatch.xdelta",fatDeviceStr);
-			snprintf(targetfileStr,sizeof(targetfileStr),"%spatched.iso",fatDeviceStr);
-			
-			// Display Selected File Parameters
-			printf("Source Game: %s\n",gamefileStr);
-			printf("Patch File: %s\n",patchfileStr);
-			printf("Output File: %s\n\n",targetfileStr);
 
 			// Initialize SD
 			printf("Mounting SD...\n\n");
@@ -105,44 +98,13 @@ int main(int argc, char **argv) {
 			// List SD Contents
 				//printf("Listing SD Contents...\n\n");
 				//dirlist(fatDeviceStr);
-			
-			// Open Game Source
-			gamefile = fopen(gamefileStr,"rb");
-			if (gamefile == NULL) {
-				printf("Could not open %s\n\n",gamefileStr);
-			} else {
-				printf("%s loaded successfully\n",gamefileStr);
-				fclose(gamefile);
-			}
-			
-			// Open Patch
-			patchfile = fopen(patchfileStr,"rb");
-			if (patchfile == NULL) {
-				printf("Could not open %s\n\n",patchfileStr);
-			} else {
-				printf("%s loaded successfully\n\n",patchfileStr);
-				fclose(patchfile);
-			}
-			
-			
-			// Deinitialize SD
-			printf("Unmounting SD...\n\n");
-			SDCard_DeInit();
-			
+				
 			break;
 			
 		//USB
 		case 2: printf("USB selected.\n\n");
 			strcpy(fatDeviceStr,"usb:/");
-			snprintf(gamefileStr,sizeof(gamefileStr),"%sgame.iso",fatDeviceStr);
-			snprintf(patchfileStr,sizeof(patchfileStr),"%spatch.xdelta",fatDeviceStr);
-			snprintf(targetfileStr,sizeof(targetfileStr),"%spatched.iso",fatDeviceStr);
-		
-			// Display Selected File Parameters
-			printf("Source Game: %s\n",gamefileStr);
-			printf("Patch File: %s\n",patchfileStr);
-			printf("Output File: %s\n\n",targetfileStr);
-		
+			
 			// Initialize USB
 			printf("Mounting USB...\n\n");
 			InitUSB();
@@ -151,35 +113,59 @@ int main(int argc, char **argv) {
 				//printf("Listing USB Contents...\n\n");
 				//dirlist(fatDeviceStr);
 			
-			// Open Game Source
-			gamefile = fopen(gamefileStr,"rb");
-			if (gamefile == NULL) {
-				printf("Could not open %s\n\n",gamefileStr);
-			} else {
-				printf("%s loaded successfully\n",gamefileStr);
-				fclose(gamefile);
-			}
-			
-			// Open Patch
-			patchfile = fopen(patchfileStr,"rb");
-			if (patchfile == NULL) {
-				printf("Could not open %s\n\n",patchfileStr);
-			} else {
-				printf("%s loaded successfully\n\n",patchfileStr);
-				fclose(patchfile);
-			}
-			
-			// Deinitialize USB
-			DeInitUSB();
-			
 			break;
 	}
 	
-	printf("Press [HOME] to exit.\n\n");
+	snprintf(gamefileStr,sizeof(gamefileStr),"%sgame.iso",fatDeviceStr);
+	snprintf(patchfileStr,sizeof(patchfileStr),"%spatch.xdelta",fatDeviceStr);
+	snprintf(targetfileStr,sizeof(targetfileStr),"%spatched.iso",fatDeviceStr);
+
+	// Display Selected File Parameters
+	printf("Source Game: %s\n",gamefileStr);
+	printf("Patch File: %s\n",patchfileStr);
+	printf("Output File: %s\n\n",targetfileStr);
+
+	// Open Game Source
+	gamefile = fopen(gamefileStr,"rb");
+	if (gamefile == NULL) {
+		printf("Could not open %s\n\n",gamefileStr);
+		return waitForHomeToExit();
+	} else {
+		printf("%s loaded successfully\n",gamefileStr);
+		fclose(gamefile);
+	}
+	
+	// Open Patch
+	patchfile = fopen(patchfileStr,"rb");
+	if (patchfile == NULL) {
+		printf("Could not open %s\n\n",patchfileStr);
+		return waitForHomeToExit();
+	} else {
+		printf("%s loaded successfully\n\n",patchfileStr);
+		fclose(patchfile);
+	}
+
+
+	// Deinitialize FAT device
+	switch (deviceSelect) {
+		// SD
+		case 1: printf("Unmounting SD...\n\n");
+			SDCard_DeInit();
+			break;
+		
+		//USB
+		case 2: printf("Unmounting USB...\n\n");
+			DeInitUSB();
+			break;
+	}
+	
 	return waitForHomeToExit();
 }
 
 int waitForHomeToExit() {
+	
+	printf("Press [HOME] to exit.\n\n");
+
 	//Wait for user to press HOME button to exit
 	while(1) {
 

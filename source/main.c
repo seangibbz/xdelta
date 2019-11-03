@@ -1,6 +1,7 @@
 #include <gccore.h>
 #include <wiiuse/wpad.h>
 #include <fat.h>
+#include <sdcard/wiisd_io.h>
 
 #include "main.h"
 
@@ -8,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <stdbool.h>
 
 //---------------------------------------------------------------------------------
 int main(int argc, char **argv) {
@@ -46,18 +48,64 @@ int main(int argc, char **argv) {
 	if(rmode->viTVMode&VI_NON_INTERLACE) VIDEO_WaitVSync();
 
 
-	// Position cursor on row 0, column 0
-	printf("\x1b[0;0H");
+	// Position cursor on row 2, column 0
+	printf("\x1b[2;0H");
 
-	// Check if FAT can be initialized
-	if (!fatInitDefault()) {
-		printf("Unable to initialise FAT subsystem, exiting.\n");
-		exit(0);
-	} else {
-		printf("SD Card Detected!\nListing SD Card Directory...\n");
-		dirlist("/");
+	
+	// Select device (SD or USB)
+	int deviceSelect = 0;
+	printf("Select the device with your game and patch files\n\n");
+	printf("\tPress [1] for Front SD\n");
+	printf("\tPress [2] for USB\n");
+	printf("\tPress [HOME] to exit\n\n");
+	
+	while (deviceSelect == 0) {
+		WPAD_ScanPads();
+		u32 pressed = WPAD_ButtonsDown(0);
+		if (pressed & WPAD_BUTTON_1) {
+			deviceSelect = 1;
+		} else if (pressed & WPAD_BUTTON_2) {
+			deviceSelect = 2;
+		} else if (pressed & WPAD_BUTTON_HOME) {
+			printf("Exiting...\n");
+			exit(0);
+		} else if (pressed) {
+			printf("Invalid input.\n");
+		}
 	}
-
+	
+	switch (deviceSelect) {
+		// SD
+		case 1: printf("SD Card selected.\n\n");
+			// Initialize SD
+			printf("Mounting SD...\n\n");
+			SDCard_Init();
+			
+			// List SD Contents
+			dirlist("sd:/");
+			
+			// Deinitialize SD
+			printf("Unmounting SD...\n\n");
+			SDCard_DeInit();
+			
+			break;
+			
+		//USB
+		case 2: printf("USB selected.\n\n");
+			// Initialize USB
+			printf("Mounting USB...\n\n");
+			InitUSB();
+			
+			// List USB Contents
+			dirlist("usb:/");
+			
+			// Deinitialize USB
+			DeInitUSB();
+			
+			break;
+	}
+	
+	printf("Press [HOME] to exit.\n\n");
 	return waitForHomeToExit();
 }
 
@@ -74,7 +122,7 @@ int waitForHomeToExit() {
 
 		// We return to the launcher application via exit
 		if ( pressed & WPAD_BUTTON_HOME ) {
-			printf("\nExiting...\n");
+			printf("Exiting...\n");
 			exit(0);
 		}
 
@@ -88,38 +136,69 @@ int waitForHomeToExit() {
 void dirlist(char* path) {
 	DIR* pdir = opendir(path);
 
-	if (pdir != NULL)
-	{
-		while(true) 
-		{
+	if (pdir != NULL) {
+		while(true) {
 			struct dirent* pent = readdir(pdir);
 			if(pent == NULL) break;
 			
-			if(strcmp(".", pent->d_name) != 0 && strcmp("..", pent->d_name) != 0)
-			{
+			if(strcmp(".", pent->d_name) != 0 && strcmp("..", pent->d_name) != 0) {
 				char dnbuf[260];
 				sprintf(dnbuf, "%s/%s", path, pent->d_name);
 				
 				struct stat statbuf;
 				stat(dnbuf, &statbuf);
 				
-				if(S_ISDIR(statbuf.st_mode))
-				{
-					printf("%s <DIR>\n", dnbuf);
+				if(S_ISDIR(statbuf.st_mode)) {
+					printf("\t%s <DIR>\n", dnbuf);
 					dirlist(dnbuf);
-				}
-				else
-				{
-					printf("%s (%d)\n", dnbuf, (int)statbuf.st_size);
+				} else {
+					printf("\t%s (%d)\n", dnbuf, (int)statbuf.st_size);
 				}
 				
 			}
 		}
-		
+		printf("\n");
 		closedir(pdir);
 	}
-	else
-	{
-		printf("opendir() failure.\n");
+	else {
+		printf("opendir() failure.\n\n");
 	}
+}
+
+void SDCard_Init() {
+	__io_wiisd.startup();
+	fatMountSimple("sd", &__io_wiisd);
+}
+
+void SDCard_DeInit() {
+	fatUnmount("sd");
+	__io_wiisd.shutdown();
+}
+
+void InitUSB() {
+	fatUnmount("usb:/"); 
+	bool isMounted = fatMountSimple("usb", &__io_usbstorage);
+	 
+	if(!isMounted) {
+		fatUnmount("usb:/");
+		fatMountSimple("usb", &__io_usbstorage);
+		 
+		bool isInserted = __io_usbstorage.isInserted();
+		 
+		if(isInserted) {
+			int retry = 10;
+			 
+			while(retry) { 
+				isMounted = fatMountSimple("usb", &__io_usbstorage);
+				if (isMounted) break;
+				sleep(1);
+				retry--;
+			}
+		}          
+	}
+}
+
+void DeInitUSB() {
+	fatUnmount("usb:/");
+	__io_usbstorage.shutdown(); 
 }

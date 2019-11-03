@@ -3,13 +3,14 @@
 #include <fat.h>
 #include <sdcard/wiisd_io.h>
 
-#include "main_wii.h"
+#include "main.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 //---------------------------------------------------------------------------------
 int main(int argc, char **argv) {
@@ -74,15 +75,55 @@ int main(int argc, char **argv) {
 		}
 	}
 	
+	char fatDeviceStr[strlen("usb:/") + 1];
+	char gamefileStr[strlen("usb:/game.iso") + 1];
+	char patchfileStr[strlen("usb:/patch.xdelta") + 1];
+	char targetfileStr[strlen("usb:/patched.iso") + 1];
+	
+	FILE *gamefile = NULL;
+	FILE *patchfile = NULL;
+	FILE *targetfile = NULL;
+	
+	
 	switch (deviceSelect) {
 		// SD
 		case 1: printf("SD Card selected.\n\n");
+			strcpy(fatDeviceStr,"sd:/");
+			snprintf(gamefileStr,sizeof(gamefileStr),"%sgame.iso",fatDeviceStr);
+			snprintf(patchfileStr,sizeof(patchfileStr),"%spatch.xdelta",fatDeviceStr);
+			snprintf(targetfileStr,sizeof(targetfileStr),"%spatched.iso",fatDeviceStr);
+			
+			// Display Selected File Parameters
+			printf("Source Game: %s\n",gamefileStr);
+			printf("Patch File: %s\n",patchfileStr);
+			printf("Output File: %s\n\n",targetfileStr);
+
 			// Initialize SD
 			printf("Mounting SD...\n\n");
 			SDCard_Init();
 			
 			// List SD Contents
-			dirlist("sd:/");
+				//printf("Listing SD Contents...\n\n");
+				//dirlist(fatDeviceStr);
+			
+			// Open Game Source
+			gamefile = fopen(gamefileStr,"rb");
+			if (gamefile == NULL) {
+				printf("Could not open %s\n\n",gamefileStr);
+			} else {
+				printf("%s loaded successfully\n",gamefileStr);
+				fclose(gamefile);
+			}
+			
+			// Open Patch
+			patchfile = fopen(patchfileStr,"rb");
+			if (patchfile == NULL) {
+				printf("Could not open %s\n\n",patchfileStr);
+			} else {
+				printf("%s loaded successfully\n\n",patchfileStr);
+				fclose(patchfile);
+			}
+			
 			
 			// Deinitialize SD
 			printf("Unmounting SD...\n\n");
@@ -92,12 +133,41 @@ int main(int argc, char **argv) {
 			
 		//USB
 		case 2: printf("USB selected.\n\n");
+			strcpy(fatDeviceStr,"usb:/");
+			snprintf(gamefileStr,sizeof(gamefileStr),"%sgame.iso",fatDeviceStr);
+			snprintf(patchfileStr,sizeof(patchfileStr),"%spatch.xdelta",fatDeviceStr);
+			snprintf(targetfileStr,sizeof(targetfileStr),"%spatched.iso",fatDeviceStr);
+		
+			// Display Selected File Parameters
+			printf("Source Game: %s\n",gamefileStr);
+			printf("Patch File: %s\n",patchfileStr);
+			printf("Output File: %s\n\n",targetfileStr);
+		
 			// Initialize USB
 			printf("Mounting USB...\n\n");
 			InitUSB();
 			
 			// List USB Contents
-			dirlist("usb:/");
+				//printf("Listing USB Contents...\n\n");
+				//dirlist(fatDeviceStr);
+			
+			// Open Game Source
+			gamefile = fopen(gamefileStr,"rb");
+			if (gamefile == NULL) {
+				printf("Could not open %s\n\n",gamefileStr);
+			} else {
+				printf("%s loaded successfully\n",gamefileStr);
+				fclose(gamefile);
+			}
+			
+			// Open Patch
+			patchfile = fopen(patchfileStr,"rb");
+			if (patchfile == NULL) {
+				printf("Could not open %s\n\n",patchfileStr);
+			} else {
+				printf("%s loaded successfully\n\n",patchfileStr);
+				fclose(patchfile);
+			}
 			
 			// Deinitialize USB
 			DeInitUSB();

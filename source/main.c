@@ -136,7 +136,14 @@ int main(int argc, char **argv) {
 
 	/* TO BE COMPLETED - INSERT FUTURE CODE HERE
 	   Patch gamefile using patchfile via xDelta library
-	   Save output to targetfile */
+	   Save output to targetfile
+	   
+		//Example code for display purposes
+		printf("Patching file. Please wait....\n\n");
+		sleep(5);
+		printf("%s was patched successfully!\n",gamefileStr);
+		printf("Output saved as %s\n\n",targetfileStr);
+	*/
 
 	fclose(gamefile);
 	fclose(patchfile);

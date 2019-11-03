@@ -1,3 +1,5 @@
+// #include "xdelta3/xdelta3.h"
+
 #include <gccore.h>
 #include <wiiuse/wpad.h>
 #include <fat.h>

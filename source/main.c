@@ -129,41 +129,27 @@ int main(int argc, char **argv) {
 	gamefile = fopen(gamefileStr,"rb");
 	if (gamefile == NULL) {
 		printf("Could not open %s\n\n",gamefileStr);
-		return waitForHomeToExit();
+		return programEnd(deviceSelect);
 	} else {
 		printf("%s loaded successfully\n",gamefileStr);
-		fclose(gamefile);
 	}
 	
 	// Open Patch
 	patchfile = fopen(patchfileStr,"rb");
 	if (patchfile == NULL) {
 		printf("Could not open %s\n\n",patchfileStr);
-		return waitForHomeToExit();
+		fclose(gamefile);
+		return programEnd(deviceSelect);
 	} else {
 		printf("%s loaded successfully\n\n",patchfileStr);
-		fclose(patchfile);
 	}
 
-
-	// Deinitialize FAT device
-	switch (deviceSelect) {
-		// SD
-		case 1: printf("Unmounting SD...\n\n");
-			SDCard_DeInit();
-			break;
-		
-		//USB
-		case 2: printf("Unmounting USB...\n\n");
-			DeInitUSB();
-			break;
-	}
-	
-	return waitForHomeToExit();
+	fclose(gamefile);
+	fclose(patchfile);
+	return programEnd(deviceSelect);
 }
 
 int waitForHomeToExit() {
-	
 	printf("Press [HOME] to exit.\n\n");
 
 	//Wait for user to press HOME button to exit
@@ -257,4 +243,20 @@ void InitUSB() {
 void DeInitUSB() {
 	fatUnmount("usb:/");
 	__io_usbstorage.shutdown(); 
+}
+
+int programEnd(int loadedDevice) {
+	switch (loadedDevice) {
+		// SD
+		case 1: printf("Unmounting SD...\n\n");
+			SDCard_DeInit();
+			break;
+		
+		//USB
+		case 2: printf("Unmounting USB...\n\n");
+			DeInitUSB();
+			break;
+	}
+	
+	return waitForHomeToExit();
 }

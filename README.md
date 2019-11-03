@@ -1,6 +1,6 @@
-# XDelta Wii/GC
+# XDelta Wii
 
-This is an attempt to create a homebrew app for the Nintendo Wii / GameCube that can patch dumped games, without the need for a computer.
+This is an attempt to create a homebrew app for the Nintendo Wii that can patch dumped games, without the need for a computer.
 
 # Xdelta
 

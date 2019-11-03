@@ -3,7 +3,7 @@
 #include <fat.h>
 #include <sdcard/wiisd_io.h>
 
-#include "main.h"
+#include "main_wii.h"
 
 #include <stdio.h>
 #include <stdlib.h>

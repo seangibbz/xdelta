@@ -26,6 +26,7 @@ This is an attempt to create a homebrew app for the Nintendo Wii that can patch 
 
 ## To Do
 
+* Actually implement the xDelta library functions
 * Add NTFS Support (required for patching Wii ISO files as they exceed the 4GB FAT file size limit)
 * Port to GameCube
 	* Change WPAD to PAD inputs

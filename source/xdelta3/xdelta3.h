@@ -110,14 +110,9 @@
  * generally check for overflow of the xoff_t size (this is tested at
  * the 32bit boundary [xdelta3-test.h]).
  */
-#ifndef _WIN32
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #include <stdint.h>
-#else /* WIN32 case */
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
 
 #ifndef WINVER
 #if XD3_USE_LARGEFILE64
@@ -131,7 +126,7 @@
 #endif /* if XD3_USE_LARGEFILE64 */
 #endif /* ifndef WINVER */
 
-#include <windows.h>
+//#include <windows.h>
 
 /* _MSV_VER is defined by Microsoft tools, not by Mingw32 */
 #ifdef _MSC_VER
@@ -167,23 +162,13 @@ typedef ULONGLONG      uint64_t;
 #define _FILE_OFFSET_BITS 64
 #endif
 
-static_assert(SIZEOF_SIZE_T == sizeof(size_t), "SIZEOF_SIZE_T not correctly set");
-static_assert(SIZEOF_UNSIGNED_LONG_LONG == sizeof(unsigned long long), "SIZEOF_UNSIGNED_LONG_LONG not correctly set");
+//static_assert(SIZEOF_SIZE_T == sizeof(size_t), "SIZEOF_SIZE_T not correctly set");
+//static_assert(SIZEOF_UNSIGNED_LONG_LONG == sizeof(unsigned long long), "SIZEOF_UNSIGNED_LONG_LONG not correctly set");
 
 /* Set a xoff_t typedef and the "Q" printf insert. */
-#if defined(_WIN32)
-typedef uint64_t xoff_t;
-#define Q "I64"
-#elif SIZEOF_UNSIGNED_LONG == 8
 typedef unsigned long xoff_t;
 #define Q "l"
-#elif SIZEOF_SIZE_T == 8
-typedef size_t xoff_t;
-#define Q "z"
-#elif SIZEOF_UNSIGNED_LONG_LONG == 8
-typedef unsigned long long xoff_t;
-#define Q "ll"
-#endif /* typedef and #define Q */
+
 
 #define SIZEOF_XOFF_T 8
 
@@ -205,19 +190,8 @@ typedef uint32_t xoff_t;
 #if XD3_USE_LARGESIZET
 
 /* Set a usize_ttypedef and the "W" printf insert. */
-#if defined(_WIN32)
-typedef uint64_t usize_t;
-#define W "I64"
-#elif SIZEOF_UNSIGNED_LONG == 8
 typedef unsigned long usize_t;
 #define W "l"
-#elif SIZEOF_SIZE_T == 8
-typedef size_t usize_t;
-#define W "z"
-#elif SIZEOF_UNSIGNED_LONG_LONG == 8
-typedef unsigned long long usize_t;
-#define W "ll"
-#endif /* typedef and #define W */
 
 #define SIZEOF_USIZE_T 8
 
@@ -247,7 +221,7 @@ typedef uint32_t usize_t;
 #define Z "z"
 #endif /* Windows or not */
 #else
-#error Bad configure script
+//#error Bad configure script
 #endif /* size_t printf flags */
 
 #define USE_UINT32 (SIZEOF_USIZE_T == 4 || \
@@ -1473,4 +1447,4 @@ void xd3_blksize_add (xoff_t *blkno,
 
 #define SIZEOF_ARRAY(x) (sizeof(x) / sizeof(x[0]))
 
-#endif /* _XDELTA3_H_ */
+//#endif /* _XDELTA3_H_ */

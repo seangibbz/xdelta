@@ -1,3 +1,5 @@
+#include "xdelta3/xdelta3.h"
+
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
